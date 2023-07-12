@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct person {
+    char name[50];
+    int age;
+};
+
+void writeStructToFile(const struct person* p, FILE* file) {
+    fprintf(file, "%s %d\n", p->name, p->age);
+}
+
+void readStructFromFile(struct person* p, FILE* file) {
+    fscanf(file, "%s %d", p->name, &(p->age));
+}
+
+int main() {
+    struct person inputPerson;
+    FILE* file;
+
+    file = fopen("people.txt", "a+"); // Open file in append mode
+
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return 1;
+    }
+
+    char choice;
+    do {
+        printf("Enter name: ");
+        scanf("%s", inputPerson.name);
+
+        printf("Enter age: ");
+        scanf("%d", &(inputPerson.age));
+
+        writeStructToFile(&inputPerson, file);
+
+        printf("Do you want to enter another person? (y/n): ");
+        scanf(" %c", &choice);
+    } while (choice == 'y' || choice == 'Y');
+
+    fclose(file);
+
+    // Reopen the file for reading
+    file = fopen("people.txt", "r");
+
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return 1;
+    }
+
+    struct person readPerson;
+
+    printf("Contents of the file:\n");
+    while (fscanf(file, "%s %d", readPerson.name, &(readPerson.age)) == 2) {
+        printf("Name: %s, Age: %d\n", readPerson.name, readPerson.age);
+    }
+
+    fclose(file);
+
+    return 0;
+}
