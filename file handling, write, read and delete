@@ -1,0 +1,108 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h> 
+#include <windows.h>
+
+struct Employee {
+  char num[20];
+  char name[30];
+  char statusCode;
+  float hoursWorked;
+  float deductions;
+  float basicSalary;
+  float basicRate;
+  float overtimePay;
+  float basicPay;
+} E1, E2;
+
+int main() {
+    printf("welcome to the code");
+    FILE *records, *r_records,  *temprecord;
+
+    records = fopen("recordsss.txt", "w");
+
+    if (records == NULL) {
+        printf("Error opening the file.\n");
+        return 1;
+    }
+
+    char conf;
+    do {
+        system("cls");
+        printf("input name: ");
+        fgets(E1.name, sizeof(E1.name), stdin);
+
+        printf("input employee number: ");
+        fgets(E1.num, sizeof(E1.num), stdin);
+
+        printf("input salary: ");
+        scanf("%f", &E1.basicSalary);
+
+        fprintf(records, "%s,%s,%.2f\n", E1.name, E1.num, E1.basicSalary);
+
+        printf("do you want to add another instance? Y/N:");
+        scanf(" %c", &conf);
+        getchar( );
+    } while(conf == 'Y' || conf == 'y');
+
+    fclose(records);
+
+    r_records = fopen("recordsss.txt", "r");
+
+    if (r_records == NULL) {
+        printf("Error opening the file.\n");
+        return 1;
+    }
+    int count = 1;
+    printf("employees:\n");
+    while (fscanf(r_records, "%[^,],%[^,],%f\n", E2.name, E2.num, &E2.basicSalary) == 3) {
+        //fucntion to remove newline spaces from fgets
+        E2.name[strcspn(E2.name, "\n")] = 0;
+        E2.num[strcspn(E2.num, "\n")] = 0;
+        printf("%d) Name: %s number: %s salary: %.2f\n", count, E2.name, E2.num, E2.basicSalary);
+        count++;
+    }
+
+    while(1){
+        printf("would you like to delete?");
+        scanf("%c", &conf);
+        if(conf == 'n' || conf == 'N'){
+            break;
+        }
+    
+    system("cls");
+    printf("delete:\n");
+    rewind(r_records);
+    count = 1;
+    conf = 1;
+    while (fscanf(r_records, "%[^,],%[^,],%f\n", E2.name, E2.num, &E2.basicSalary) == 3) {
+        //fucntion to remove newline spaces from fgets
+        E2.name[strcspn(E2.name, "\n")] = 0;
+        E2.num[strcspn(E2.num, "\n")] = 0;
+        printf("%d) Name: %s number: %s salary: %.2f\n", count, E2.name, E2.num, E2.basicSalary);
+        count++;
+    }
+    int choice = 0;
+    printf("select the number of what to delete:");
+    scanf("%d", &choice);
+    rewind(r_records);
+
+    temprecord = fopen("temprecords.txt", "w");
+     if (temprecord == NULL) {
+        printf("Error opening the file.\n");
+        return 1;
+    }
+    int count2 = 1;
+    while (fscanf(r_records, "%[^,],%[^,],%f\n", E2.name, E2.num, &E2.basicSalary) == 3){
+        if(choice != count2){
+            fprintf(temprecord, "%s,%s,%.2f\n", E2.name, E2.num, E2.basicSalary);
+        }
+        count2++;
+    }
+        break;
+    }
+    fclose(r_records);
+    return 0;
+
+}
