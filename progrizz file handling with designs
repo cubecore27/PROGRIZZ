@@ -1,0 +1,375 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h> 
+#include <windows.h>
+#include <conio.h>
+#define erase system("cls");
+
+#define line   printf("__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-__-\n");
+#define line2 printf("________________________________________________________________________________________________________________________\n");
+struct Employee {
+  char num[20];
+  char name[30];
+  char statusCode[10];
+  float hoursWorked;
+  float deductions;
+  float basicSalary;
+  float basicRate;
+  float overtimePay;
+  float netpay;
+} E1, E2;
+
+char menuinput[1]; // variable in selecting numbers in main menu
+char conf;      // variable in Y|N choices
+int count = 1;  // Itterations 
+int numselect;
+
+FILE *records, *temp;
+
+//function to open files
+char openrecords(char mode){
+  switch(mode){
+    case 'w':
+    records = fopen("mainrecord.txt", "w");
+        if (records == NULL) {
+          printf("Error opening the file.\n");
+          exit;
+    }
+      break;
+    case 'r':
+    records = fopen("mainrecord.txt", "r");
+        if (records == NULL) {
+          printf("Error opening the file.\n");
+          exit;
+        }
+        break;
+    case 'a':
+    records = fopen("mainrecord.txt", "a");
+        if (records == NULL) {
+          printf("Error opening the file.\n");
+          exit;
+  }
+        break;
+    case 't':
+    temp = fopen("tempmainrecord.txt", "w");
+        if (temp == NULL) {
+          printf("Error opening the file.\n");
+          exit;
+        }
+        break;
+    case 'x':
+    temp = fopen("tempmainrecord.txt", "r");
+        if (temp == NULL) {
+          printf("Error opening the file.\n");
+          exit;
+        }
+      break;     
+  }
+  
+}
+
+//Main menu function
+menufunc(){
+  erase;
+  line;
+  
+  printf("\e[1;32m\t\t\t\t\t+---------------------------------------+\n");
+  terminal();
+  //printf("\t\t\t\t\t|\e[1;32m          ABC PAYROLL TERMINAl         \e[0;37m|\n");
+  printf("\t\t\t\t\t+---------------------------------------+\e[0;37m\n");
+  printf("\e[0;33m\t\t\t\t\t            1) Add records:\n");
+  printf("\t\t\t\t\t            2) View records:\n");
+  printf("\t\t\t\t\t            3) Remove records:\n");
+  printf("\t\t\t\t\t            4) clear all records:\n");
+  printf("\t\t\t\t\t            5) Exit:\n\e[0;37m");
+  
+  line;
+  printf("->");
+  scanf(" %c", &menuinput);
+  getchar();
+  erase;
+  switch (menuinput[0])
+  {
+  case '1':
+    printf("this place is to add records\n");
+    openrecords('a');
+    addrecords();
+    fclose(records);
+    return(0);
+
+  case '2':
+    erase;
+    menudisplay();
+    recordprint();
+    break;
+  
+  case '3':
+    recordremove();
+    return(0);
+
+
+  case '5':
+   
+   end();
+    printf("                   ---> \e[0;31mthankyou for using the program\e[0;37m <---");
+   getchar();
+    exit(0);
+
+  case '4':
+    line;
+    printf("\033[1;31mare you sure to erase all records? Y/N\n->\033[0m\n");
+    if(confirmation() == 0){
+      return(0);
+  
+    }
+    openrecords('w');
+    printf("All records has been erased\n");
+    fclose(records);
+    return(0);
+  
+  default:
+    printf("Invalid input\n");
+    return(0);
+  }
+
+  
+}
+
+//removes a line of record
+recordremove(){
+
+  int number = 1;
+  printf("select of what to delete:\n\n");
+  line2;
+  printf(" \e[0;33m\tEmployee\t\tEmployee\tStatus\t\tBasic \t\tOvertime\tDeductions\tNet\n");
+  printf(" \tNumber  \t\tName    \t      \t\tSalary\t\tPay     \t          \tPay\e[0;37m\n");
+  line2;
+  recordprint(); // to print the records
+  openrecords('t');  // opens temp file to write
+  openrecords('r');  // opens main file to read
+  printf("\e[0;31m%d)\tnone\n\e[0;37m", count);
+  line;
+  printf("->");
+  scanf("%d", &numselect);
+    if(numselect == count){
+      return(0);
+    }
+  while(fscanf(records, "%[^,],%[^,],%[^,],%f,%f,%f,%f", E1.name, E1.num, E1.statusCode, &E1.basicSalary, &E1.deductions, &E1.overtimePay, &E1.netpay) == 7){
+    if(number != numselect){
+      fprintf(temp, "%s,%s,%s,%.2f,%.2f,%.2f,%.2f", E1.name, E1.num, E1.statusCode, E1.basicSalary, E1.deductions, E1.overtimePay, E1.netpay);
+    }
+    number++;
+  }
+
+
+  closerecords();
+  openrecords('x');
+  openrecords('w');
+  
+  //updates record with the temp
+
+  while(fscanf(temp, "%[^,],%[^,],%[^,],%f,%f,%f,%f", E1.name, E1.num, E1.statusCode, &E1.basicSalary, &E1.deductions, &E1.overtimePay, &E1.netpay) == 7){
+      fprintf(records, "%s,%s,%s,%.2f,%.2f,%.2f,%.2f", E1.name, E1.num, E1.statusCode, E1.basicSalary, E1.deductions, E1.overtimePay, E1.netpay);
+    }
+  printf("\e[1;32mDeleted successfully...\e[0;37m\n");
+  closerecords();
+  }
+
+//prints the record from file stream
+recordprint() {
+  char status[10];
+  count = 1;
+  openrecords('r');
+  rewind(records);
+
+  int test;
+
+  while(fscanf(records, "%[^,],%[^,],%[^,],%f,%f,%f,%f", E1.name, E1.num, E1.statusCode, &E1.basicSalary, &E1.deductions, &E1.overtimePay, &E1.netpay) == 7){
+    
+    E1.num[strcspn(E1.num, "\n")] = 0;
+  
+    if(E1.statusCode[0] == 'r' || E1.statusCode[0] == 'R'){
+      strncpy(E1.statusCode, "Regular", 10);
+    }
+      else{
+      strncpy(E1.statusCode, "Casual", 10);  
+      }
+    printf("\e[0;36m%d)\t%-10s\t\t%-10s\t%-10s\t\e[0;32m+ %-10.2f\t+ %-10.2f\t\e[0;31m- %-10.2f\t\e[0;32m= %-10.2f\e[0;37m\n",count, E1.num, E1.name, E1.statusCode, E1.basicSalary, E1.overtimePay, E1.deductions, E1.netpay);
+    count++;
+  }
+  closerecords();
+}
+
+
+int confirmation(){
+  while (1){
+  scanf("%s",&conf);
+  getchar();
+  if(conf == 'y' || conf =='Y'){
+    return(1);
+  }
+  if(conf == 'N' || conf =='n'){
+    return(0);
+    ;
+  }
+  else{
+    printf("INVALID INPUT\n->");
+  }
+  }
+}
+
+recordupdate(){
+
+}
+//display design 
+menudisplay(){
+  printf("\e[1;32m\t\t\t\t\t\t\tProgrizzo company inc.\n\n");
+          printf("\t\t\t\t\t\t\tBonifacio Global City\n");
+          printf("\t\t\t\t\t\t\t     Payroll\e[0;37m\n");
+  line2;
+  printf(" \e[0;33m\tEmployee\t\tEmployee\tStatus\t\tBasic \t\tOvertime\tDeductions\tNet\n");
+  printf(" \tNumber  \t\tName    \t      \t\tSalary\t\tPay     \t          \tPay\e[0;37m\n");
+  line2;
+}
+
+login(){
+  
+}
+closerecords(){
+  fclose(records);
+  fclose(temp);
+  rewind(records);
+  rewind(temp);
+}
+addrecords(){
+  do {
+    erase;
+        printf("input name: ");
+        scanf("%[^\n]s", E1.name);
+        getchar();
+        erase;
+
+        printf("input employee number: ");
+        fgets(E1.num, sizeof(E1.num), stdin);
+        erase;
+
+        printf("input hours worked: ");
+        scanf("%f", &E1.hoursWorked);
+        erase;
+
+        printf("input deductions: ");
+        scanf("%f", &E1.deductions);
+        erase;
+
+        printf("input status code (R|C): ");
+
+        while(1){
+          scanf("%s", E1.statusCode);
+          getchar();
+          if(E1.statusCode[0] == 'r' || E1.statusCode[0] == 'R'){
+            printf("input basic salary: ");
+            scanf("%f", &E1.basicSalary);
+              if(E1.hoursWorked > 160){
+                E1.overtimePay = 1.5 * (E1.basicSalary / 160) * (E1.hoursWorked - 160);
+            }
+          break;
+        }
+          if(E1.statusCode[0] == 'c' || E1.statusCode[0 ] == 'C'){
+          printf("input basic rate: ");
+          scanf("%f", &E1.basicRate);
+            if(E1.hoursWorked > 160){
+              E1.basicSalary = (E1.hoursWorked - 160) * E1.basicRate;
+              E1.overtimePay = 1.5 * E1.basicRate * (E1.hoursWorked - 160);
+            }
+            else{
+              E1.basicSalary = (E1.hoursWorked) * E1.basicRate;
+            }
+          break;
+        }
+        else{
+          erase;
+          printf("\e[0;31mInvalid input..  R|C\n\e[0;37m->");
+        }
+        }
+        erase;
+        E1.netpay = E1.basicSalary + E1.overtimePay - E1.deductions;
+        fprintf(records, "%s,%s,%s,%.2f,%.2f,%.2f,%.2f", E1.name, E1.num, E1.statusCode, E1.basicSalary, E1.deductions, E1.overtimePay, E1.netpay);
+
+        printf("do you want to add another instance? Y/N\n->");
+        scanf(" %c", &conf);
+        getchar();
+  } while(conf == 'Y' || conf == 'y');
+       
+}
+
+int main() {
+  erase;
+  front();
+  printf("\n\e[1;35mpress any key to continue...\e[0;37m");
+  getchar();
+
+  //login if fail, return 0
+
+  while(1) {
+  erase;
+  menufunc();
+  printf("would you like to return to main menu Y/N\n->");
+   if(confirmation() == 0){
+    line;
+  
+    end();
+    printf("                   ---> \e[0;31mthankyou for using the program\e[0;37m <---");
+    getchar();
+    line;
+    return 0;
+   }
+getchar();
+}
+return 0;
+}
+
+//text art
+terminal(){
+    printf("                             _           _                                          _ _   _                      _             _ \n");
+    printf("                            (_)         (_)                                        | | | | |                    (_)           | |\n");
+    printf("  _ __  _ __ ___   __ _ _ __ _ ________  _ _ __   ___   _ __   __ _ _   _ _ __ ___ | | | | |_ ___ _ __ _ __ ___  _ _ __   __ _| |\n");
+    printf(" | '_ \\| '__/ _ \\ / _` | '__| |_  /_  / | | '_ \\ / __| | '_ \\ / _` | | | | '__/ _ \\| | | | __/ _ \\ '__| '_ ` _ \\| | '_ \\ / _` | |\n");
+    printf(" | |_) | | | (_) | (_| | |  | |/ / / / _| | | | | (__  | |_) | (_| | |_| | | | (_) | | | | ||  __/ |  | | | | | | | | | | (_| | |\n");
+    printf(" | .__/|_|  \\___/ \\__, |_|  |_/___/___(_)_|_| |_|\\___| | .__/ \\__,_|\\__, |_|  \\___/|_|_|  \\__\\___|_|  |_| |_| |_|_|_| |_|\\__,_|_|\n");
+    printf(" | |               __/ |                               | |           __/ |                                                        \n");
+    printf(" |_|              |___/                                |_|          |___/                                                         \n");
+
+}
+front(){
+line;
+printf("\t\t\e[1;33m\e[1;33m__________                            .__\n");
+printf("\t\t\\______   \\_______  ____   ___________|__|_______________\n");
+printf("\t\t |     ___/\\_  __ \\/  _ \\ / ___\\_  __ \\  \\___   /\\___   /\n");
+printf("\t\t |    |     |  | \\(  <_> ) /_/  >  | \\/  |/    /  /    /\n");
+printf("\t\t |____|     |__|   \\____/\\___  /|__|  |__/_____ \\/_____ \\\n");
+printf("\t\t                        /_____/                \\/      \\/\n\e[0;37m");
+line;
+}
+end(){
+    printf("\n");
+    printf(" \e[1;35m________  ________  ___  _________         _____                   _____         \n");
+    printf("|\\   __  \\|\\   ____\\|\\  \\|\\___   ___\\      / __  \\                 / __  \\        \n");
+    printf("\\ \\  \\|\\ /\\ \\  \\___|\\ \\  \\|___ \\  \\_|     |\\/_|\\  \\  ____________ |\\/_|\\  \\       \n");
+    printf(" \\ \\   __  \\ \\_____  \\ \\  \\   \\ \\  \\      \\|/ \\ \\  \\|\\____________\\|/ \\ \\  \\      \n");
+    printf("  \\ \\  \\|\\  \\|____|\\  \\ \\  \\   \\ \\  \\          \\ \\  \\|____________|    \\ \\  \\     \n");
+    printf("   \\ \\_______\\____\\_\\  \\ \\__\\   \\ \\__\\          \\ \\__\\                  \\ \\__\\    \n");
+    printf("    \\|_______|\\_________\\|__|    \\|__|           \\|__|                   \\|__|    \n");
+    printf("             \\|_________|                                                          \n");
+    printf("                                                                                  \n");
+    printf("                                                                                  \n");
+    printf("________  ________  ________  ___  ___  ________         _____                   \n");
+    printf("|\\   ____\\|\\   __  \\|\\   __  \\|\\  \\|\\  \\|\\   __  \\       / __  \\                  \n");
+    printf("\\ \\  \\___|\\ \\  \\|\\  \\ \\  \\|\\  \\ \\  \\\\\\  \\ \\  \\|\\  \\     |\\/_|\\  \\                 \n");
+    printf(" \\ \\  \\  __\\ \\   _  _\\ \\  \\\\\\  \\ \\  \\\\\\  \\ \\   ____\\    \\|/ \\ \\  \\                \n");
+    printf("  \\ \\  \\|\\  \\ \\  \\\\  \\\\ \\  \\\\\\  \\ \\  \\\\\\  \\ \\  \\___|         \\ \\  \\               \n");
+    printf("   \\ \\_______\\ \\__\\\\ _\\\\ \\_______\\ \\_______\\ \\__\\             \\ \\__\\              \n");
+    printf("    \\|_______|\\|__|\\|__|\\|_______|\\|_______|\\|__|              \\|__|              \n");
+    printf("                                                                                  \n");
+    printf("                                                                                  \n\e[0;37m");
+}
