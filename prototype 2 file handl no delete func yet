@@ -1,0 +1,198 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h> 
+#include <windows.h>
+#define erase system("cls");
+#define line printf("=========================================================================================================================\n");
+struct Employee {
+  char num[20];
+  char name[30];
+  char statusCode[2];
+  float hoursWorked;
+  float deductions;
+  float basicSalary;
+  float basicRate;
+  float overtimePay;
+  float netpay;
+} E1, E2;
+
+const char* Employee_Format_IN = "";
+
+char menuinput;
+char conf;
+
+
+FILE *records, *temp;
+
+char openrecords(char mode){
+  switch(mode){
+    case 'w':
+    records = fopen("mainrecord.txt", "w");
+        if (records == NULL) {
+          printf("Error opening the file.\n");
+          exit;
+    }
+      break;
+    case 'r':
+    records = fopen("mainrecord.txt", "r");
+        if (records == NULL) {
+          printf("Error opening the file.\n");
+          exit;
+        }
+        break;
+    case 'a':
+    records = fopen("mainrecord.txt", "a");
+        if (records == NULL) {
+          printf("Error opening the file.\n");
+          exit;
+  }
+        break;
+    
+  }
+}
+
+
+
+void menufunc(){
+  erase;
+  line;
+  printf("welcome to the menu\n");
+  printf("1) Add records:\n");
+  printf("2) View records:\n");
+  printf("3) Remove records:\n");
+  printf("4) Exit:\n");
+  printf("5) clear all records:\n");
+  line;
+  printf("->");
+  scanf(" %c", &menuinput);
+  getchar();
+  system("cls");
+  switch (menuinput)
+  {
+  case '1':
+    printf("this place is to add records\n");
+    openrecords('a');
+    addrecords();
+    fclose(records);
+    menufunc();
+
+  case '2':
+    erase;
+    menudisplay();
+    recordprint();
+    break;
+
+  case '4':
+    printf("thankyou for using our program");
+    exit(0);
+
+  case '5':
+    openrecords('w');
+    fclose(records);
+    menufunc();
+  }
+
+  
+}
+
+int count = 1;
+
+void recordprint() {
+  count = 1;
+  openrecords('r');
+  rewind(records);
+
+  int test;
+
+  while(fscanf(records, "%[^,],%[^,],%[^,],%f,%f,%f,%f", E1.name, E1.num, E1.statusCode, &E1.basicSalary, &E1.deductions, &E1.overtimePay, &E1.netpay) == 7){
+    E1.num[strcspn(E1.num, "\n")] = 0;
+    //E2.name[strcspn(E2.name, "\n")] = 0;
+    E1.statusCode[strcspn(E1.statusCode, "\n")] = 0;
+  //printf("Employee\t\tEmployee\tStatus\t\tBasic \t\tOvertime\tDeductions\tNet\n");
+    printf("%-10s\t\t%-10s\t%-10s\t+%-10.2f\t+%-10.2f\t-%-10.2f\t=%-10.2f\n",E1.num, E1.name, E1.statusCode, E1.basicSalary, E1.overtimePay, E1.deductions, E1.netpay);
+    //printf("%s\n", E1.name);
+    //printf("%s\n", E1.num);
+    //printf("%s\n", E1.statusCode);
+    //printf("%.2f\n", E1.deductions);
+    //printf("%.2f\n", E1.basicRate);
+    //printf("%.2f\n", E1.overtimePay);
+    //printf("success");
+    count++;
+  }
+}
+
+void menudisplay(){
+  line;
+  printf("                                          ABC COMPANY\n");
+  printf("                                          Makati City\n");
+  printf("                                            Payroll\n");
+  line;
+  printf("Employee\t\tEmployee\tStatus\t\tBasic \t\tOvertime\tDeductions\tNet\n");
+  printf("Number  \t\tName    \t      \t\tSalary\t\tPay     \t          \tPay\n");
+  line;
+}
+void closerecords(){
+  fclose(records);
+}
+void addrecords(){
+  do {
+    erase;
+        printf("input name: ");
+        scanf("%[^\n]s", E1.name);
+        getchar();
+
+        printf("input employee number: ");
+        fgets(E1.num, sizeof(E1.num), stdin);
+
+        printf("input hours worked: ");
+        scanf("%f", &E1.hoursWorked);
+
+        printf("input deductions: ");
+        scanf("%f", &E1.deductions);
+
+        printf("input status code (R|C): ");
+
+        while(1){
+          scanf("%s", E1.statusCode);
+          getchar();
+          printf("%s", E1.statusCode);
+          if(E1.statusCode[0] == 'r' || E1.statusCode[0] == 'R'){
+
+            printf("input basic salary: ");
+            scanf("%f", &E1.basicSalary);
+              if(E1.hoursWorked > 160){
+                E1.overtimePay = 1.5 * (E1.basicSalary / 160) * (E1.hoursWorked - 160);
+            }
+          break;
+        }
+        else if(E1.statusCode[0] == 'c' || E1.statusCode[0 ] == 'C'){
+          printf("input basic rate: ");
+          scanf("%f", &E1.basicRate);
+            if(E1.hoursWorked > 160){
+              E1.basicSalary = (E1.hoursWorked - 160) * E1.basicRate;
+              E1.overtimePay = 1.5 * E1.basicRate * (E1.hoursWorked - 160);
+            }
+            else{
+              E1.basicSalary = (E1.hoursWorked) * E1.basicRate;
+            }
+          break;
+        }
+        else{
+          printf("Invalid input..  R|C\n->");
+            break;
+        }
+        }
+        E1.netpay = E1.basicSalary + E1.overtimePay - E1.deductions;
+        fprintf(records, "%s,%s,%s,%.2f,%.2f,%.2f,%.2f", E1.name, E1.num, E1.statusCode, E1.basicSalary, E1.deductions, E1.overtimePay, E1.netpay);
+        printf("do you want to add another instance? Y/N:");
+        scanf(" %c", &conf);
+        getchar();
+  } while(conf == 'Y' || conf == 'y');
+       
+}
+int main() {
+  
+  menufunc();
+  return 0;
+}
